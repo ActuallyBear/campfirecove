@@ -3,6 +3,7 @@ const { Client, GatewayIntentBits, Partials, PermissionFlagsBits } = require("di
 const db = require("./src/database");
 const { install, channelByName } = require("./src/install");
 const { setupPanels, toggleRole } = require("./src/panels");
+const { setupPublicPanels } = require("./src/publicPanels");
 const core = require("./src/core");
 
 const client = new Client({
@@ -54,6 +55,11 @@ client.on("interactionCreate", async interaction => {
     }
     if (name === "setup-role-panels") {
       await interaction.deferReply({ ephemeral: true }); await setupPanels(interaction.guild); return interaction.editReply("✅ Self-role, colour and notification panels posted.");
+    }
+    if (name === "setup-public-panels") {
+      await interaction.deferReply({ ephemeral: true });
+      await setupPublicPanels(interaction.guild);
+      return interaction.editReply("✅ Welcome, rules, verification and ticket panels posted.");
     }
     if (name === "ticket") return core.openTicket(interaction);
     if (name === "close-ticket") { if (!interaction.channel.topic?.startsWith("ticket:")) return interaction.reply({ content: "Use this inside a ticket.", ephemeral: true }); await interaction.reply("Closing in 5 seconds..."); await core.log(interaction.guild, "🔒 Ticket Closed", `${interaction.user} closed ${interaction.channel}.`); return setTimeout(() => interaction.channel.delete("Ticket closed"), 5000); }
