@@ -4,6 +4,7 @@ const db = require("./src/database");
 const { install, channelByName } = require("./src/install");
 const { setupPanels, toggleRole } = require("./src/panels");
 const { setupPublicPanels } = require("./src/publicPanels");
+const { setupServerStats, updateServerStats } = require("./src/serverStats");
 const core = require("./src/core");
 
 const client = new Client({
@@ -17,10 +18,14 @@ client.once("clientReady", ready => {
 });
 
 client.on("guildMemberAdd", async member => {
+  await updateServerStats(member.guild);
   await channelByName(member.guild, "general")?.send(`🔥 Welcome ${member} to **Campfire Cove**! You are member **#${member.guild.memberCount}**.`).catch(() => null);
   await core.log(member.guild, "📥 Member Joined", `${member.user.tag} joined. Member count: ${member.guild.memberCount}`, "#22C55E");
 });
-client.on("guildMemberRemove", member => core.log(member.guild, "📤 Member Left", `${member.user.tag} left. Member count: ${member.guild.memberCount}`, "#EF4444"));
+client.on("guildMemberRemove", async member => {
+  await updateServerStats(member.guild);
+  await core.log(member.guild, "📤 Member Left", `${member.user.tag} left. Member count: ${member.guild.memberCount}`, "#EF4444");
+});
 client.on("messageDelete", message => { if (message.guild && !message.author?.bot) core.log(message.guild, "🗑️ Message Deleted", `${message.author} in ${message.channel}:\n${message.content || "*attachment only*"}`, "#EF4444"); });
 client.on("messageUpdate", (oldMessage, newMessage) => { if (oldMessage.guild && !oldMessage.author?.bot && oldMessage.content !== newMessage.content) core.log(oldMessage.guild, "✏️ Message Edited", `${oldMessage.author} in ${oldMessage.channel}\n**Before:** ${oldMessage.content}\n**After:** ${newMessage.content}`, "#F59E0B"); });
 
@@ -60,6 +65,11 @@ client.on("interactionCreate", async interaction => {
       await interaction.deferReply({ ephemeral: true });
       await setupPublicPanels(interaction.guild);
       return interaction.editReply("✅ Welcome, rules, verification and ticket panels posted.");
+    }
+    if (name === "setup-server-stats") {
+      await interaction.deferReply({ ephemeral: true });
+      const created = await setupServerStats(interaction.guild);
+      return interaction.editReply(`✅ Server statistics are live. Created **${created}** missing counter(s).`);
     }
     if (name === "ticket") return core.openTicket(interaction);
     if (name === "close-ticket") { if (!interaction.channel.topic?.startsWith("ticket:")) return interaction.reply({ content: "Use this inside a ticket.", ephemeral: true }); await interaction.reply("Closing in 5 seconds..."); await core.log(interaction.guild, "🔒 Ticket Closed", `${interaction.user} closed ${interaction.channel}.`); return setTimeout(() => interaction.channel.delete("Ticket closed"), 5000); }
