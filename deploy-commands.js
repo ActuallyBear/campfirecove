@@ -4,6 +4,7 @@ const admin = PermissionFlagsBits.Administrator;
 const commands = [
   new SlashCommandBuilder().setName("install-campfire-cove").setDescription("Safely create the complete Campfire Cove server.").setDefaultMemberPermissions(admin),
   new SlashCommandBuilder().setName("setup-role-panels").setDescription("Post self-role, colour and notification panels.").setDefaultMemberPermissions(admin),
+  new SlashCommandBuilder().setName("setup-public-panels").setDescription("Post welcome, rules, verification and ticket panels.").setDefaultMemberPermissions(admin),
   new SlashCommandBuilder().setName("ticket").setDescription("Open a support ticket."),
   new SlashCommandBuilder().setName("close-ticket").setDescription("Close the current support ticket."),
   new SlashCommandBuilder().setName("rank").setDescription("View a member's rank.").addUserOption(o=>o.setName("user").setDescription("Member").setRequired(false)),
