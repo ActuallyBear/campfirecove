@@ -18,6 +18,98 @@ async function ensureChannel(guild, category, name, type = ChannelType.GuildText
     guild.channels.create({ name, type, parent: category.id, permissionOverwrites: overwrites, reason: "Campfire Cove installation" });
 }
 
+async function syncPermissions(guild, memberRole, staffRoles) {
+  const publicCategory = "🔥・WELCOME";
+  const gatedCategories = new Set([
+    "🪪・YOU",
+    "💬・CHATS",
+    "🎮・GAMING",
+    "🎲・FUN",
+    "🎯・ACTIVITIES",
+    "🤖・BOTS",
+    "🎫・SUPPORT",
+    "🤝・PARTNERSHIPS",
+    "🔊・VOICE CHATS"
+  ]);
+
+  for (const category of guild.channels.cache.filter(c => c.type === ChannelType.GuildCategory).values()) {
+    if (category.name === publicCategory) {
+      await category.permissionOverwrites.edit(guild.roles.everyone, {
+        ViewChannel: true
+      });
+      continue;
+    }
+
+    if (gatedCategories.has(category.name)) {
+      await category.permissionOverwrites.edit(guild.roles.everyone, {
+        ViewChannel: false
+      });
+      await category.permissionOverwrites.edit(memberRole, {
+        ViewChannel: true,
+        SendMessages: true,
+        ReadMessageHistory: true
+      });
+    }
+  }
+
+  const staffCategory = guild.channels.cache.find(
+    c => c.type === ChannelType.GuildCategory && c.name === "🛡️・STAFF"
+  );
+  if (staffCategory) {
+    await staffCategory.permissionOverwrites.edit(guild.roles.everyone, {
+      ViewChannel: false
+    });
+    await staffCategory.permissionOverwrites.edit(memberRole, {
+      ViewChannel: false
+    });
+    for (const role of staffRoles) {
+      await staffCategory.permissionOverwrites.edit(role, {
+        ViewChannel: true,
+        SendMessages: true,
+        ReadMessageHistory: true
+      });
+    }
+  }
+
+  const readOnlyForEveryone = [
+    "announcements",
+    "rules",
+    "verify",
+    "updates",
+    "about-campfire-cove",
+    "server-boosts"
+  ];
+  for (const name of readOnlyForEveryone) {
+    const channel = channelByName(guild, name);
+    if (!channel) continue;
+    await channel.permissionOverwrites.edit(guild.roles.everyone, {
+      ViewChannel: true,
+      SendMessages: false,
+      AddReactions: false
+    });
+  }
+
+  for (const name of ["self-roles", "colour-roles", "notification-roles", "levels", "leaderboard", "suggestions", "quotes", "starboard"]) {
+    const channel = channelByName(guild, name);
+    if (!channel) continue;
+    await channel.permissionOverwrites.edit(memberRole, {
+      ViewChannel: true,
+      SendMessages: false,
+      AddReactions: true,
+      ReadMessageHistory: true
+    });
+  }
+
+  const botCommands = channelByName(guild, "bot-commands");
+  if (botCommands) {
+    await botCommands.permissionOverwrites.edit(memberRole, {
+      ViewChannel: true,
+      SendMessages: true,
+      UseApplicationCommands: true
+    });
+  }
+}
+
 async function install(guild) {
   let roles = 0, categories = 0, channels = 0;
   const ensureCountedRole = async (spec, hoist = false) => {
@@ -64,6 +156,9 @@ async function install(guild) {
     await ensureChannel(guild, staffCategory, name, ChannelType.GuildText, staffOverwrites);
     if (!present) channels++;
   }
+
+  const memberRole = roleByName(guild, "❤️ Member");
+  await syncPermissions(guild, memberRole, staff);
 
   const verify = channelByName(guild, "verify");
   const oldPanel = await verify.messages.fetch({ limit: 50 }).catch(() => null);
