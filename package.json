@@ -1,0 +1,20 @@
+{
+  "name": "campfire-cove-bot",
+  "version": "1.0.0",
+  "description": "Professional modular Discord bot for Campfire Cove",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "deploy": "node deploy-commands.js",
+    "dev": "node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5",
+    "better-sqlite3": "^11.10.0",
+    "@napi-rs/canvas": "^0.1.80"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
