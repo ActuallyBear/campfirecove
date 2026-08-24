@@ -48,6 +48,7 @@ const topics = {
   tickets: "Open a private ticket when you need help from the staff team.",
   help: "Ask community questions and get a helping hand.",
   "bug-reports": "Report bot or server issues clearly so the team can investigate.",
+  "staff-applications": "Apply to help keep Campfire Cove safe, friendly and welcoming.",
   partners: "Discover the communities partnered with Campfire Cove.",
   "partnership-requests": "Read the requirements and apply to partner with Campfire Cove.",
   "staff-chat": "Private staff conversation and team coordination.",
