@@ -7,6 +7,7 @@ const { setupPublicPanels } = require("./src/publicPanels");
 const { setupServerStats, updateServerStats } = require("./src/serverStats");
 const { applyChannelTopics } = require("./src/channelTopics");
 const { setupApplicationPanels, showApplicationModal, submitApplication, decideApplication } = require("./src/applications");
+const { postAnnouncement } = require("./src/announcements");
 const core = require("./src/core");
 
 const client = new Client({
@@ -86,6 +87,11 @@ client.on("interactionCreate", async interaction => {
       await interaction.deferReply({ ephemeral: true });
       const result = await setupApplicationPanels(interaction.guild);
       return interaction.editReply(`✅ Staff and partnership application panels are live.${result.created ? " The staff-applications channel was created." : ""}`);
+    }
+    if (name === "announce") {
+      await interaction.deferReply({ ephemeral: true });
+      const result = await postAnnouncement(interaction);
+      return interaction.editReply(`✅ ${result.template.label} posted in ${result.sent.channel}: ${result.sent.url}`);
     }
     if (name === "ticket") return core.openTicket(interaction);
     if (name === "close-ticket") { if (!interaction.channel.topic?.startsWith("ticket:")) return interaction.reply({ content: "Use this inside a ticket.", ephemeral: true }); await interaction.reply("Closing in 5 seconds..."); await core.log(interaction.guild, "🔒 Ticket Closed", `${interaction.user} closed ${interaction.channel}.`); return setTimeout(() => interaction.channel.delete("Ticket closed"), 5000); }
