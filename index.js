@@ -5,6 +5,7 @@ const { install, channelByName } = require("./src/install");
 const { setupPanels, toggleRole } = require("./src/panels");
 const { setupPublicPanels } = require("./src/publicPanels");
 const { setupServerStats, updateServerStats } = require("./src/serverStats");
+const { applyChannelTopics } = require("./src/channelTopics");
 const core = require("./src/core");
 
 const client = new Client({
@@ -70,6 +71,12 @@ client.on("interactionCreate", async interaction => {
       await interaction.deferReply({ ephemeral: true });
       const created = await setupServerStats(interaction.guild);
       return interaction.editReply(`✅ Server statistics are live. Created **${created}** missing counter(s).`);
+    }
+    if (name === "setup-channel-topics") {
+      await interaction.deferReply({ ephemeral: true });
+      const result = await applyChannelTopics(interaction.guild);
+      const missing = result.missing.length ? ` Missing: ${result.missing.join(", ")}.` : "";
+      return interaction.editReply(`✅ Channel descriptions applied. Updated **${result.updated}**; already correct **${result.unchanged}**.${missing}`);
     }
     if (name === "ticket") return core.openTicket(interaction);
     if (name === "close-ticket") { if (!interaction.channel.topic?.startsWith("ticket:")) return interaction.reply({ content: "Use this inside a ticket.", ephemeral: true }); await interaction.reply("Closing in 5 seconds..."); await core.log(interaction.guild, "🔒 Ticket Closed", `${interaction.user} closed ${interaction.channel}.`); return setTimeout(() => interaction.channel.delete("Ticket closed"), 5000); }
