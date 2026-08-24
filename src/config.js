@@ -6,7 +6,7 @@ const categories = [
   ["🎲・FUN", ["memes", "pets", "food", "music", "books", "anime", "birthdays", "question-of-the-day", "song-of-the-day"]],
   ["🎯・ACTIVITIES", ["events", "giveaways", "counting", "confessions", "truth-or-dare"]],
   ["🤖・BOTS", ["bot-commands", "poketwo", "catbot", "dank-memer"]],
-  ["🎫・SUPPORT", ["tickets", "help", "bug-reports"]],
+  ["🎫・SUPPORT", ["tickets", "help", "bug-reports", "staff-applications"]],
   ["🤝・PARTNERSHIPS", ["partners", "partnership-requests"]]
 ];
 
