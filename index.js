@@ -8,6 +8,7 @@ const { setupServerStats, updateServerStats } = require("./src/serverStats");
 const { applyChannelTopics } = require("./src/channelTopics");
 const { setupApplicationPanels, showApplicationModal, submitApplication, decideApplication } = require("./src/applications");
 const { postAnnouncement } = require("./src/announcements");
+const { handleBumpConfirmation, initializeBumpReminders } = require("./src/bumpReminders");
 const core = require("./src/core");
 
 const client = new Client({
@@ -18,6 +19,7 @@ const client = new Client({
 client.once("clientReady", ready => {
   console.log(`✅ Logged in as ${ready.user.tag}`);
   console.log(`✅ Connected to: ${ready.guilds.cache.map(g => `${g.name} (${g.id})`).join(", ")}`);
+  initializeBumpReminders(ready);
 });
 
 client.on("guildMemberAdd", async member => {
@@ -33,6 +35,7 @@ client.on("messageDelete", message => { if (message.guild && !message.author?.bo
 client.on("messageUpdate", (oldMessage, newMessage) => { if (oldMessage.guild && !oldMessage.author?.bot && oldMessage.content !== newMessage.content) core.log(oldMessage.guild, "✏️ Message Edited", `${oldMessage.author} in ${oldMessage.channel}\n**Before:** ${oldMessage.content}\n**After:** ${newMessage.content}`, "#F59E0B"); });
 
 client.on("messageCreate", async message => {
+  await handleBumpConfirmation(message);
   if (await core.counting(message)) return;
   await core.handleXP(message);
 });
