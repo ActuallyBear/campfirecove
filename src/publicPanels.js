@@ -9,11 +9,11 @@ const { channelByName } = require("./install");
 const BRAND = "#E76F51";
 const DARK = "#2B0B3F";
 
-async function replacePanel(channel, marker, payload) {
+async function replacePanel(channel, marker, payload, legacyPredicate = () => false) {
   const messages = await channel.messages.fetch({ limit: 100 });
   const previous = messages.filter(message =>
     message.author.id === channel.guild.members.me.id &&
-    message.embeds.some(item => item.footer?.text === marker)
+    (message.embeds.some(item => item.footer?.text === marker) || legacyPredicate(message))
   );
   for (const message of previous.values()) await message.delete().catch(() => null);
   await channel.send(payload);
@@ -90,7 +90,7 @@ async function setupPublicPanels(guild) {
       "campfire-cove:rules",
       DARK
     )]
-  });
+  }, message => message.embeds.some(embed => embed.title?.includes("Rules")));
 
   await replacePanel(verify, "campfire-cove:verify", {
     embeds: [panel(
@@ -107,7 +107,7 @@ async function setupPublicPanels(guild) {
           .setStyle(ButtonStyle.Success)
       )
     ]
-  });
+  }, message => message.components.some(row => row.components.some(component => component.customId === "verify_member")));
 
   await replacePanel(tickets, "campfire-cove:tickets", {
     embeds: [panel(
