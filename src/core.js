@@ -1,6 +1,7 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, ChannelType, PermissionFlagsBits } = require("discord.js");
 const db = require("./database");
 const { channelByName, roleByName } = require("./install");
+const cfg = require("./config");
 
 const embed = (title, description, color = "#E76F51") => new EmbedBuilder().setColor(color).setTitle(title).setDescription(description).setTimestamp().setFooter({ text: "Campfire Cove • Gather by the fire. Stay for the people." });
 
@@ -47,7 +48,27 @@ async function handleXP(message) {
   const oldXp = row?.xp || 0, xp = oldXp + 10, messages = (row?.messages || 0) + 1;
   db.prepare("INSERT INTO levels(guild_id,user_id,xp,messages) VALUES(?,?,?,?) ON CONFLICT(guild_id,user_id) DO UPDATE SET xp=excluded.xp,messages=excluded.messages").run(message.guild.id, message.author.id, xp, messages);
   const oldLevel = Math.floor(Math.sqrt(oldXp / 50)), level = Math.floor(Math.sqrt(xp / 50));
-  if (level > oldLevel) channelByName(message.guild, "levels")?.send(`🎉 ${message.author}, you reached **Level ${level}**!`).catch(() => null);
+  const awarded = [];
+  for (const [name] of cfg.levelRoles) {
+    const required = Number(name.match(/Level (\d+)/)?.[1]);
+    const role = roleByName(message.guild, name);
+    if (required && level >= required && role && !message.member.roles.cache.has(role.id)) {
+      await message.member.roles.add(role, `Reached Campfire Cove level ${required}`).then(() => awarded.push(role.name)).catch(() => null);
+    }
+  }
+  if (level > oldLevel) {
+    const rewards = awarded.length ? `\nYou unlocked: **${awarded.join(", ")}**` : "";
+    channelByName(message.guild, "levels")?.send(`🎉 ${message.author}, you reached **Level ${level}**!${rewards}`).catch(() => null);
+  }
+}
+
+async function setChannelLock(guild, channel, locked) {
+  const member = roleByName(guild, "❤️ Member");
+  if (member) await channel.permissionOverwrites.edit(member, { SendMessages: locked ? false : null });
+  await channel.permissionOverwrites.edit(guild.roles.everyone, { SendMessages: locked ? false : null });
+  for (const role of guild.roles.cache.filter(item => ["🔥 Owner", "🪵 Co-Owner", "🏕️ Management", "🛡️ Admin", "🌙 Senior Moderator", "✨ Moderator", "🌱 Trial Mod"].includes(item.name)).values()) {
+    await channel.permissionOverwrites.edit(role, { SendMessages: locked ? true : null });
+  }
 }
 
 async function rank(interaction) {
@@ -95,4 +116,4 @@ async function counting(message) {
   return true;
 }
 
-module.exports = { embed, log, isStaff, verify, openTicket, handleXP, rank, leaderboard, suggest, vote, counting };
+module.exports = { embed, log, isStaff, verify, openTicket, handleXP, setChannelLock, rank, leaderboard, suggest, vote, counting };
