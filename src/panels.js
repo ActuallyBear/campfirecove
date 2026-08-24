@@ -5,13 +5,21 @@ const { channelByName, roleByName } = require("./install");
 const slug = value => value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
 
 async function postPanel(channel, title, roles, prefix, single = false) {
+  const marker = `campfire-cove:roles:${prefix}`;
+  const messages = await channel.messages.fetch({ limit: 100 });
+  const previous = messages.filter(message =>
+    message.author.id === channel.guild.members.me.id &&
+    (message.embeds.some(embed => embed.footer?.text === marker) || message.embeds.some(embed => embed.title === title))
+  );
+  for (const message of previous.values()) await message.delete().catch(() => null);
+
   const rows = [];
   for (let i = 0; i < roles.length; i += 5) {
     rows.push(new ActionRowBuilder().addComponents(...roles.slice(i, i + 5).map(name =>
       new ButtonBuilder().setCustomId(`role:${prefix}:${single ? "one" : "many"}:${slug(name)}`).setLabel(name.toLowerCase()).setStyle(ButtonStyle.Secondary)
     )));
   }
-  await channel.send({ embeds: [new EmbedBuilder().setColor("#2B0B3F").setTitle(title).setDescription("Click a button to add or remove a role.")], components: rows });
+  await channel.send({ embeds: [new EmbedBuilder().setColor("#2B0B3F").setTitle(title).setDescription("Click a button to add or remove a role.").setFooter({ text: marker })], components: rows });
 }
 
 async function setupPanels(guild) {
