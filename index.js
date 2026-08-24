@@ -6,6 +6,7 @@ const { setupPanels, toggleRole } = require("./src/panels");
 const { setupPublicPanels } = require("./src/publicPanels");
 const { setupServerStats, updateServerStats } = require("./src/serverStats");
 const { applyChannelTopics } = require("./src/channelTopics");
+const { setupApplicationPanels, showApplicationModal, submitApplication, decideApplication } = require("./src/applications");
 const core = require("./src/core");
 
 const client = new Client({
@@ -51,7 +52,10 @@ client.on("interactionCreate", async interaction => {
       if (interaction.customId === "open_ticket") return core.openTicket(interaction);
       if (interaction.customId.startsWith("role:")) return toggleRole(interaction);
       if (interaction.customId.startsWith("vote:")) return core.vote(interaction);
+      if (interaction.customId.startsWith("application:start:")) return showApplicationModal(interaction);
+      if (interaction.customId.startsWith("application:decision:")) return decideApplication(interaction, core.isStaff);
     }
+    if (interaction.isModalSubmit() && interaction.customId.startsWith("application:submit:")) return submitApplication(interaction);
     if (!interaction.isChatInputCommand()) return;
     const name = interaction.commandName;
     if (name === "install-campfire-cove") {
@@ -77,6 +81,11 @@ client.on("interactionCreate", async interaction => {
       const result = await applyChannelTopics(interaction.guild);
       const missing = result.missing.length ? ` Missing: ${result.missing.join(", ")}.` : "";
       return interaction.editReply(`✅ Channel descriptions applied. Updated **${result.updated}**; already correct **${result.unchanged}**.${missing}`);
+    }
+    if (name === "setup-application-panels") {
+      await interaction.deferReply({ ephemeral: true });
+      const result = await setupApplicationPanels(interaction.guild);
+      return interaction.editReply(`✅ Staff and partnership application panels are live.${result.created ? " The staff-applications channel was created." : ""}`);
     }
     if (name === "ticket") return core.openTicket(interaction);
     if (name === "close-ticket") { if (!interaction.channel.topic?.startsWith("ticket:")) return interaction.reply({ content: "Use this inside a ticket.", ephemeral: true }); await interaction.reply("Closing in 5 seconds..."); await core.log(interaction.guild, "🔒 Ticket Closed", `${interaction.user} closed ${interaction.channel}.`); return setTimeout(() => interaction.channel.delete("Ticket closed"), 5000); }
