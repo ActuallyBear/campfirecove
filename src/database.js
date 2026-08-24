@@ -12,5 +12,6 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS suggestions (id INTEGER PRIMARY KEY AUTOINCREMENT, guild_id TEXT, user_id TEXT, text TEXT, message_id TEXT, upvotes INTEGER DEFAULT 0, downvotes INTEGER DEFAULT 0, status TEXT DEFAULT 'Pending');
   CREATE TABLE IF NOT EXISTS votes (suggestion_id INTEGER, user_id TEXT, vote TEXT, PRIMARY KEY(suggestion_id,user_id));
   CREATE TABLE IF NOT EXISTS counting (guild_id TEXT PRIMARY KEY, channel_id TEXT, current INTEGER DEFAULT 0, last_user_id TEXT);
+  CREATE TABLE IF NOT EXISTS bump_reminders (guild_id TEXT PRIMARY KEY, channel_id TEXT, next_at INTEGER);
 `);
 module.exports = db;
