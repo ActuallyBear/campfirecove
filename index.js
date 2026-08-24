@@ -109,7 +109,7 @@ client.on("interactionCreate", async interaction => {
     if (name === "timeout") { const member=interaction.options.getMember("user"), minutes=interaction.options.getInteger("minutes"), reason=interaction.options.getString("reason")||"No reason"; await member.timeout(minutes*60000,reason); return interaction.reply(`⏳ ${member} timed out for ${minutes} minute(s).`); }
     if (name === "purge") { const amount=interaction.options.getInteger("amount"); const deleted=await interaction.channel.bulkDelete(amount,true); return interaction.reply({ content:`🧹 Deleted ${deleted.size} messages.`,ephemeral:true }); }
     if (name === "slowmode") { const seconds=interaction.options.getInteger("seconds"); await interaction.channel.setRateLimitPerUser(seconds); return interaction.reply(`✅ Slowmode set to ${seconds}s.`); }
-    if (name === "lock" || name === "unlock") { await interaction.channel.permissionOverwrites.edit(interaction.guild.roles.everyone,{SendMessages:name === "unlock" ? null : false}); return interaction.reply(`🔒 Channel ${name === "lock" ? "locked" : "unlocked"}.`); }
+    if (name === "lock" || name === "unlock") { const locked = name === "lock"; await core.setChannelLock(interaction.guild, interaction.channel, locked); return interaction.reply(`${locked ? "🔒" : "🔓"} Channel ${locked ? "locked" : "unlocked"}.`); }
   } catch (error) {
     console.error(error);
     const payload = { content: `❌ ${error.message}`, ephemeral: true };
