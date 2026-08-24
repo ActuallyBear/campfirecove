@@ -8,6 +8,23 @@ const commands = [
   new SlashCommandBuilder().setName("setup-server-stats").setDescription("Create live server statistic counters.").setDefaultMemberPermissions(admin),
   new SlashCommandBuilder().setName("setup-channel-topics").setDescription("Apply descriptions to every Campfire Cove channel.").setDefaultMemberPermissions(admin),
   new SlashCommandBuilder().setName("setup-application-panels").setDescription("Post staff and partnership application panels.").setDefaultMemberPermissions(admin),
+  new SlashCommandBuilder()
+    .setName("announce")
+    .setDescription("Post a styled Campfire Cove announcement.")
+    .setDefaultMemberPermissions(admin)
+    .addStringOption(o => o.setName("template").setDescription("Announcement style").setRequired(true)
+      .addChoices(
+        { name: "General announcement", value: "general" },
+        { name: "Server update", value: "update" },
+        { name: "Community event", value: "event" },
+        { name: "Giveaway", value: "giveaway" },
+        { name: "Staff announcement", value: "staff" },
+        { name: "Partnership announcement", value: "partnership" }
+      ))
+    .addChannelOption(o => o.setName("channel").setDescription("Where to post it").setRequired(true).addChannelTypes(ChannelType.GuildText, ChannelType.GuildAnnouncement))
+    .addStringOption(o => o.setName("title").setDescription("Announcement heading").setRequired(true).setMaxLength(100))
+    .addStringOption(o => o.setName("message").setDescription("Announcement text").setRequired(true).setMaxLength(2000))
+    .addRoleOption(o => o.setName("ping").setDescription("Optional role to notify")),
   new SlashCommandBuilder().setName("ticket").setDescription("Open a support ticket."),
   new SlashCommandBuilder().setName("close-ticket").setDescription("Close the current support ticket."),
   new SlashCommandBuilder().setName("rank").setDescription("View a member's rank.").addUserOption(o=>o.setName("user").setDescription("Member").setRequired(false)),
